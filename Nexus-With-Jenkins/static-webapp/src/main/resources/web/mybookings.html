@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - Movie Tickets</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1><i class="fas fa-film"></i> Movie Tickets</h1>
+                <p class="tagline">Book Your Perfect Movie Experience</p>
+            </div>
+            <nav>
+                <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                <a href="movies.html"><i class="fas fa-video"></i> Movies</a>
+                <a href="booking.html"><i class="fas fa-ticket-alt"></i> Book Now</a>
+                <a href="mybookings.html" class="active"><i class="fas fa-receipt"></i> My Bookings</a>
+            </nav>
+        </header>
+        
+        <main>
+            <section class="page-header">
+                <h1><i class="fas fa-receipt"></i> My Bookings</h1>
+                <p>View and manage your movie bookings</p>
+            </section>
+            
+            <div class="bookings-container">
+                <div class="bookings-header">
+                    <h2>Your Ticket History</h2>
+                    <button class="btn btn-secondary" id="refresh-bookings">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                
+                <div id="bookings-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading your bookings...
+                    </div>
+                </div>
+                
+                <div id="no-bookings" class="no-bookings" style="display: none;">
+                    <div class="empty-state">
+                        <i class="fas fa-ticket-alt"></i>
+                        <h3>No Bookings Yet</h3>
+                        <p>You haven't made any bookings yet. Book your first movie now!</p>
+                        <a href="movies.html" class="btn btn-primary">
+                            <i class="fas fa-video"></i> Browse Movies
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-film"></i> Movie Tickets</h3>
+                    <p>Your one-stop destination for movie bookings</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="index.html">Home</a>
+                    <a href="movies.html">Movies</a>
+                    <a href="booking.html">Book Tickets</a>
+                    <a href="mybookings.html">My Bookings</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                    <p><i class="fas fa-envelope"></i> support@movietickets.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Movie Tickets Booking System. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookingsList = document.getElementById('bookings-list');
+            const noBookings = document.getElementById('no-bookings');
+            const refreshBtn = document.getElementById('refresh-bookings');
+            
+            function loadBookings() {
+                bookingsList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading bookings...</div>';
+                
+                fetch('/api/bookings')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to load bookings');
+                        return response.json();
+                    })
+                    .then(bookings => {
+                        if (!bookings || bookings.length === 0) {
+                            bookingsList.style.display = 'none';
+                            noBookings.style.display = 'block';
+                            return;
+                        }
+                        
+                        bookingsList.style.display = 'block';
+                        noBookings.style.display = 'none';
+                        bookingsList.innerHTML = '';
+                        
+                        // Get movies data for display
+                        fetch('/api/movies')
+                            .then(response => response.json())
+                            .then(movies => {
+                                displayBookings(bookings, movies);
+                            })
+                            .catch(error => {
+                                console.error('Error loading movies:', error);
+                                displayBookings(bookings, []);
+                            });
+                    })
+                    .catch(error => {
+                        console.error('Error loading bookings:', error);
+                        bookingsList.innerHTML = `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p>Failed to load bookings. Please try again.</p>
+                                <button onclick="loadBookings()" class="btn btn-small" style="margin-top: 10px;">
+                                    <i class="fas fa-redo"></i> Retry
+                                </button>
+                            </div>
+                        `;
+                    });
+            }
+            
+            function displayBookings(bookings, movies) {
+                bookings.forEach(booking => {
+                    const movie = movies.find(m => m.id === booking.movieId);
+                    const bookingDate = new Date(booking.bookingDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    const bookingCard = document.createElement('div');
+                    bookingCard.className = 'booking-card';
+                    bookingCard.innerHTML = `
+                        <div class="booking-header">
+                            <div class="booking-id">${booking.bookingId}</div>
+                            <div class="booking-status status-confirmed">
+                                ${booking.status}
+                            </div>
+                        </div>
+                        
+                        <div class="booking-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Movie</div>
+                                <div class="detail-value">${movie ? movie.title : 'Movie #' + booking.movieId}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Seats</div>
+                                <div class="detail-value">${booking.seatNumbers.map(s => 'A' + s).join(', ')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Customer</div>
+                                <div class="detail-value">${booking.customerName}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Booking Date</div>
+                                <div class="detail-value">${bookingDate}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Total Amount</div>
+                                <div class="detail-value">$${booking.totalAmount.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="booking-actions">
+                            <button class="btn btn-small btn-secondary print-ticket" data-booking-id="${booking.bookingId}">
+                                <i class="fas fa-print"></i> Print Ticket
+                            </button>
+                        </div>
+                    `;
+                    
+                    bookingsList.appendChild(bookingCard);
+                });
+                
+                // Add event listeners to print buttons
+                document.querySelectorAll('.print-ticket').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const bookingId = this.dataset.bookingId;
+                        printTicket(bookingId);
+                    });
+                });
+            }
+            
+            function printTicket(bookingId) {
+                fetch('/api/bookings')
+                    .then(response => response.json())
+                    .then(bookings => {
+                        const booking = bookings.find(b => b.bookingId === bookingId);
+                        if (booking) {
+                            fetch('/api/movies')
+                                .then(response => response.json())
+                                .then(movies => {
+                                    const movie = movies.find(m => m.id === booking.movieId);
+                                    const printWindow = window.open('', '_blank');
+                                    
+                                    const ticketHTML = `
+                                        <!DOCTYPE html>
+                                        <html>
+                                        <head>
+                                            <title>Ticket - ${booking.bookingId}</title>
+                                            <style>
+                                                body { font-family: Arial, sans-serif; padding: 20px; }
+                                                .ticket { border: 2px dashed #333; padding: 20px; max-width: 400px; margin: 0 auto; }
+                                                .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                                                .movie-title { font-size: 24px; font-weight: bold; margin: 10px 0; }
+                                                .details { margin: 20px 0; }
+                                                .detail-item { display: flex; justify-content: space-between; margin: 5px 0; }
+                                                .barcode { text-align: center; margin: 20px 0; font-family: monospace; }
+                                                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                                                @media print { 
+                                                    body { padding: 0; }
+                                                    .no-print { display: none; } 
+                                                }
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <div class="ticket">
+                                                <div class="header">
+                                                    <h1 style="margin: 0; color: #e63946;">MOVIE TICKETS</h1>
+                                                    <p style="margin: 5px 0;">Your Ticket to Entertainment</p>
+                                                </div>
+                                                
+                                                <div class="movie-title" style="text-align: center;">${movie ? movie.title : 'Movie'}</div>
+                                                
+                                                <div class="details">
+                                                    <div class="detail-item">
+                                                        <span>Booking ID:</span>
+                                                        <span><strong>${booking.bookingId}</strong></span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <span>Seats:</span>
+                                                        <span>${booking.seatNumbers.map(s => 'A' + s).join(', ')}</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <span>Customer:</span>
+                                                        <span>${booking.customerName}</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <span>Date:</span>
+                                                        <span>${new Date(booking.bookingDate).toLocaleDateString()}</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <span>Total:</span>
+                                                        <span><strong>$${booking.totalAmount.toFixed(2)}</strong></span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="barcode">
+                                                    <div style="font-size: 18px; font-weight: bold;">${booking.bookingId}</div>
+                                                    <div style="letter-spacing: 5px; font-size: 24px; margin: 10px 0;">|||| |||| |||| ||||</div>
+                                                </div>
+                                                
+                                                <div class="footer">
+                                                    <p>Thank you for booking with us!</p>
+                                                    <p>Please arrive 15 minutes before showtime</p>
+                                                    <p>Present this ticket at the counter</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="no-print" style="text-align: center; margin-top: 20px;">
+                                                <button onclick="window.print()" style="padding: 10px 20px; background: #e63946; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                                                    Print Ticket
+                                                </button>
+                                                <button onclick="window.close()" style="padding: 10px 20px; background: #666; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </body>
+                                        </html>
+                                    `;
+                                    
+                                    printWindow.document.write(ticketHTML);
+                                    printWindow.document.close();
+                                });
+                        }
+                    });
+            }
+            
+            // Event listeners
+            refreshBtn.addEventListener('click', loadBookings);
+            
+            // Load bookings on page load
+            loadBookings();
+        });
+    </script>
+</body>
+</html>

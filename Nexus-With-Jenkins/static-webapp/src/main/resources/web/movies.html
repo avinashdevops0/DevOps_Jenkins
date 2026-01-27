@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Movies - Movie Tickets</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1><i class="fas fa-film"></i> Movie Tickets</h1>
+                <p class="tagline">Book Your Perfect Movie Experience</p>
+            </div>
+            <nav>
+                <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                <a href="movies.html" class="active"><i class="fas fa-video"></i> Movies</a>
+                <a href="booking.html"><i class="fas fa-ticket-alt"></i> Book Now</a>
+                <a href="mybookings.html"><i class="fas fa-receipt"></i> My Bookings</a>
+            </nav>
+        </header>
+        
+        <main>
+            <section class="page-header">
+                <h1><i class="fas fa-video"></i> Now Showing</h1>
+                <p>Book tickets for your favorite movies</p>
+            </section>
+            
+            <div class="filters">
+                <select id="genreFilter" class="filter-select">
+                    <option value="">All Genres</option>
+                    <option value="Action">Action</option>
+                    <option value="Comedy">Comedy</option>
+                    <option value="Sci-Fi">Sci-Fi</option>
+                    <option value="Animation">Animation</option>
+                </select>
+                <select id="sortFilter" class="filter-select">
+                    <option value="rating">Highest Rated</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
+                </select>
+            </div>
+            
+            <div id="movies-container" class="movies-grid-full">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading movies...
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-film"></i> Movie Tickets</h3>
+                    <p>Your one-stop destination for movie bookings</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="index.html">Home</a>
+                    <a href="movies.html">Movies</a>
+                    <a href="booking.html">Book Tickets</a>
+                    <a href="mybookings.html">My Bookings</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                    <p><i class="fas fa-envelope"></i> support@movietickets.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Movie Tickets Booking System. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const moviesContainer = document.getElementById('movies-container');
+            const genreFilter = document.getElementById('genreFilter');
+            const sortFilter = document.getElementById('sortFilter');
+            
+            let allMovies = [];
+            
+            function loadMovies() {
+                fetch('/api/movies')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to load movies');
+                        return response.json();
+                    })
+                    .then(movies => {
+                        allMovies = movies;
+                        displayMovies(movies);
+                    })
+                    .catch(error => {
+                        console.error('Error loading movies:', error);
+                        moviesContainer.innerHTML = `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p>Failed to load movies. Please try again later.</p>
+                                <button onclick="loadMovies()" class="btn btn-small" style="margin-top: 10px;">
+                                    <i class="fas fa-redo"></i> Retry
+                                </button>
+                            </div>
+                        `;
+                    });
+            }
+            
+            function displayMovies(movies) {
+                if (!movies || movies.length === 0) {
+                    moviesContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-film"></i>
+                            <h3>No Movies Available</h3>
+                            <p>Check back later for new releases!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                moviesContainer.innerHTML = '';
+                
+                movies.forEach(movie => {
+                    const movieCard = document.createElement('div');
+                    movieCard.className = 'movie-card';
+                    movieCard.innerHTML = `
+                        <div class="poster-placeholder">
+                            ${movie.title.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div class="movie-info">
+                            <h3 style="margin: 0 0 10px 0; font-size: 18px;">${movie.title}</h3>
+                            <p style="color: #666; margin: 0 0 10px 0; font-size: 14px;">${movie.genre}</p>
+                            <div style="margin-bottom: 10px; font-size: 14px; color: #555;">
+                                <div><i class="fas fa-clock"></i> ${movie.duration} min</div>
+                                <div><i class="fas fa-language"></i> ${movie.language}</div>
+                                <div><i class="fas fa-certificate"></i> ${movie.certificate}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="color: #f39c12;">
+                                    <i class="fas fa-star"></i> ${movie.rating}
+                                </span>
+                                <span style="font-weight: bold; color: #e63946; font-size: 18px;">$${movie.price}</span>
+                            </div>
+                            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">${movie.description}</p>
+                            <a href="booking.html?movie=${movie.id}" class="btn btn-primary" style="display: block; text-align: center;">
+                                <i class="fas fa-ticket-alt"></i> Book Now
+                            </a>
+                        </div>
+                    `;
+                    moviesContainer.appendChild(movieCard);
+                });
+            }
+            
+            function applyFilters() {
+                let filteredMovies = [...allMovies];
+                
+                const selectedGenre = genreFilter.value;
+                if (selectedGenre) {
+                    filteredMovies = filteredMovies.filter(movie => 
+                        movie.genre.includes(selectedGenre)
+                    );
+                }
+                
+                const sortBy = sortFilter.value;
+                switch(sortBy) {
+                    case 'rating':
+                        filteredMovies.sort((a, b) => b.rating - a.rating);
+                        break;
+                    case 'price_low':
+                        filteredMovies.sort((a, b) => a.price - b.price);
+                        break;
+                    case 'price_high':
+                        filteredMovies.sort((a, b) => b.price - a.price);
+                        break;
+                }
+                
+                displayMovies(filteredMovies);
+            }
+            
+            genreFilter.addEventListener('change', applyFilters);
+            sortFilter.addEventListener('change', applyFilters);
+            
+            loadMovies();
+        });
+    </script>
+</body>
+</html>

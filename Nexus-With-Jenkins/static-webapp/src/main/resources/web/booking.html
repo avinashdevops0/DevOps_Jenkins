@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Tickets - Movie Tickets</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .movie-selection-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .movie-selection-item.selected {
+            border-color: #e63946;
+            background: #fff5f5;
+        }
+        
+        .movie-selection-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1><i class="fas fa-film"></i> Movie Tickets</h1>
+                <p class="tagline">Book Your Perfect Movie Experience</p>
+            </div>
+            <nav>
+                <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                <a href="movies.html"><i class="fas fa-video"></i> Movies</a>
+                <a href="booking.html" class="active"><i class="fas fa-ticket-alt"></i> Book Now</a>
+                <a href="mybookings.html"><i class="fas fa-receipt"></i> My Bookings</a>
+            </nav>
+        </header>
+        
+        <main>
+            <section class="page-header">
+                <h1><i class="fas fa-ticket-alt"></i> Book Your Tickets</h1>
+                <p>Select movie, choose seats and complete booking</p>
+            </section>
+            
+            <div class="booking-wizard">
+                <!-- Step 1: Select Movie -->
+                <div class="booking-step active" id="step-1">
+                    <h2><span class="step-number">1</span> Select Movie</h2>
+                    <div id="movies-list" style="margin: 20px 0;">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading movies...
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn btn-primary next-step" data-next="2">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Select Seats -->
+                <div class="booking-step" id="step-2">
+                    <h2><span class="step-number">2</span> Select Seats</h2>
+                    <div class="seat-selection">
+                        <div class="screen">SCREEN</div>
+                        <div id="seats-container" class="seats-grid">
+                            <div class="loading">Select a movie first...</div>
+                        </div>
+                        <div class="seat-legend">
+                            <div class="legend-item">
+                                <div class="seat available"></div>
+                                <span>Available</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="seat selected"></div>
+                                <span>Selected</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="seat booked"></div>
+                                <span>Booked</span>
+                            </div>
+                        </div>
+                        <div class="selected-seats-info">
+                            <h3>Selected Seats: <span id="selected-seats-count">0</span></h3>
+                            <p>Total Price: $<span id="total-price">0.00</span></p>
+                        </div>
+                    </div>
+                    <div class="step-buttons">
+                        <button class="btn btn-secondary prev-step" data-prev="1">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button class="btn btn-primary next-step" data-next="3">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Customer Details -->
+                <div class="booking-step" id="step-3">
+                    <h2><span class="step-number">3</span> Customer Details</h2>
+                    <form id="customer-form" class="customer-form">
+                        <div class="form-group">
+                            <label for="customer-name"><i class="fas fa-user"></i> Full Name *</label>
+                            <input type="text" id="customer-name" required placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-email"><i class="fas fa-envelope"></i> Email Address *</label>
+                            <input type="email" id="customer-email" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-phone"><i class="fas fa-phone"></i> Phone Number *</label>
+                            <input type="tel" id="customer-phone" required placeholder="Enter your phone number">
+                        </div>
+                    </form>
+                    <div class="booking-summary">
+                        <h3>Booking Summary</h3>
+                        <div id="summary-details">
+                            <div class="loading">Select movie and seats first...</div>
+                        </div>
+                    </div>
+                    <div class="step-buttons">
+                        <button class="btn btn-secondary prev-step" data-prev="2">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button class="btn btn-primary" id="confirm-booking">
+                            Confirm Booking <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Confirmation -->
+                <div class="booking-step" id="step-4">
+                    <div class="confirmation-screen">
+                        <div class="confirmation-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h2>Booking Confirmed!</h2>
+                        <p>Your tickets have been booked successfully</p>
+                        <div id="confirmation-details" class="booking-summary" style="max-width: 500px; margin: 30px auto;">
+                            <!-- Confirmation details will be filled by JavaScript -->
+                        </div>
+                        <div class="confirmation-actions">
+                            <a href="mybookings.html" class="btn btn-primary">
+                                <i class="fas fa-receipt"></i> View My Bookings
+                            </a>
+                            <a href="index.html" class="btn btn-secondary">
+                                <i class="fas fa-home"></i> Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-film"></i> Movie Tickets</h3>
+                    <p>Your one-stop destination for movie bookings</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="index.html">Home</a>
+                    <a href="movies.html">Movies</a>
+                    <a href="booking.html">Book Tickets</a>
+                    <a href="mybookings.html">My Bookings</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                    <p><i class="fas fa-envelope"></i> support@movietickets.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Movie Tickets Booking System. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentStep = 1;
+            let selectedMovie = null;
+            let selectedSeats = [];
+            let seatPrice = 0;
+            
+            // DOM Elements
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const step4 = document.getElementById('step-4');
+            const moviesList = document.getElementById('movies-list');
+            const seatsContainer = document.getElementById('seats-container');
+            const selectedSeatsCount = document.getElementById('selected-seats-count');
+            const totalPriceElement = document.getElementById('total-price');
+            const customerForm = document.getElementById('customer-form');
+            const summaryDetails = document.getElementById('summary-details');
+            const confirmBookingBtn = document.getElementById('confirm-booking');
+            const confirmationDetails = document.getElementById('confirmation-details');
+            
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const movieIdFromUrl = urlParams.get('movie');
+            
+            // Initialize
+            loadMovies();
+            setupEventListeners();
+            
+            function loadMovies() {
+                fetch('/api/movies')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to load movies');
+                        return response.json();
+                    })
+                    .then(movies => {
+                        moviesList.innerHTML = '';
+                        
+                        if (!movies || movies.length === 0) {
+                            moviesList.innerHTML = '<div class="error-message">No movies available</div>';
+                            return;
+                        }
+                        
+                        movies.forEach(movie => {
+                            const movieItem = document.createElement('div');
+                            movieItem.className = 'movie-selection-item';
+                            movieItem.innerHTML = `
+                                <div style="display: flex; gap: 15px; align-items: center;">
+                                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); 
+                                         border-radius: 5px; display: flex; align-items: center; justify-content: center; 
+                                         color: white; font-weight: bold; font-size: 20px;">
+                                        ${movie.title.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0 0 5px 0;">${movie.title}</h3>
+                                        <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">${movie.genre} • ${movie.duration} min</p>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="color: #f39c12;">
+                                                <i class="fas fa-star"></i> ${movie.rating}
+                                            </span>
+                                            <span style="font-weight: bold; color: #e63946;">$${movie.price}</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary select-movie" data-movie-id="${movie.id}" 
+                                            style="white-space: nowrap;">
+                                        Select
+                                    </button>
+                                </div>
+                            `;
+                            moviesList.appendChild(movieItem);
+                        });
+                        
+                        // Add event listeners to select buttons
+                        document.querySelectorAll('.select-movie').forEach(button => {
+                            button.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const movieId = parseInt(this.dataset.movieId);
+                                selectMovie(movieId);
+                            });
+                        });
+                        
+                        // Add click event to entire movie item
+                        document.querySelectorAll('.movie-selection-item').forEach(item => {
+                            item.addEventListener('click', function(e) {
+                                if (!e.target.closest('button')) {
+                                    const button = this.querySelector('.select-movie');
+                                    if (button) {
+                                        const movieId = parseInt(button.dataset.movieId);
+                                        selectMovie(movieId);
+                                    }
+                                }
+                            });
+                        });
+                        
+                        // Auto-select movie from URL if provided
+                        if (movieIdFromUrl) {
+                            const movieId = parseInt(movieIdFromUrl);
+                            setTimeout(() => selectMovie(movieId), 100);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading movies:', error);
+                        moviesList.innerHTML = `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p>Failed to load movies. Please try again.</p>
+                                <button onclick="loadMovies()" class="btn btn-small" style="margin-top: 10px;">
+                                    <i class="fas fa-redo"></i> Retry
+                                </button>
+                            </div>
+                        `;
+                    });
+            }
+            
+            function selectMovie(movieId) {
+                fetch('/api/movies')
+                    .then(response => response.json())
+                    .then(movies => {
+                        selectedMovie = movies.find(m => m.id === movieId);
+                        if (selectedMovie) {
+                            seatPrice = selectedMovie.price;
+                            
+                            // Update UI
+                            document.querySelectorAll('.movie-selection-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            
+                            const selectedItem = document.querySelector(`[data-movie-id="${movieId}"]`).closest('.movie-selection-item');
+                            if (selectedItem) {
+                                selectedItem.classList.add('selected');
+                                
+                                // Show notification
+                                showNotification(`${selectedMovie.title} selected!`, 'success');
+                            }
+                        }
+                    });
+            }
+            
+            function loadSeats() {
+                if (!selectedMovie) {
+                    seatsContainer.innerHTML = '<div class="loading">Please select a movie first</div>';
+                    return;
+                }
+                
+                fetch(`/api/seats?movieId=${selectedMovie.id}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to load seats');
+                        return response.json();
+                    })
+                    .then(seats => {
+                        seatsContainer.innerHTML = '';
+                        selectedSeats = [];
+                        updateSeatSelection();
+                        
+                        if (!seats || seats.length === 0) {
+                            seatsContainer.innerHTML = '<div class="error-message">No seats available</div>';
+                            return;
+                        }
+                        
+                        seats.forEach(seat => {
+                            const seatElement = document.createElement('div');
+                            seatElement.className = `seat ${seat.available ? 'available' : 'booked'}`;
+                            seatElement.textContent = seat.id;
+                            seatElement.dataset.seatId = seat.id;
+                            
+                            if (seat.available) {
+                                seatElement.addEventListener('click', () => toggleSeat(seat.id));
+                            }
+                            
+                            seatsContainer.appendChild(seatElement);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading seats:', error);
+                        seatsContainer.innerHTML = `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p>Failed to load seats. Please try again.</p>
+                            </div>
+                        `;
+                    });
+            }
+            
+            function toggleSeat(seatId) {
+                const index = selectedSeats.indexOf(seatId);
+                const seatElement = document.querySelector(`[data-seat-id="${seatId}"]`);
+                
+                if (index === -1) {
+                    selectedSeats.push(seatId);
+                    seatElement.classList.remove('available');
+                    seatElement.classList.add('selected');
+                } else {
+                    selectedSeats.splice(index, 1);
+                    seatElement.classList.remove('selected');
+                    seatElement.classList.add('available');
+                }
+                
+                updateSeatSelection();
+            }
+            
+            function updateSeatSelection() {
+                selectedSeatsCount.textContent = selectedSeats.length;
+                const totalPrice = selectedSeats.length * seatPrice;
+                totalPriceElement.textContent = totalPrice.toFixed(2);
+            }
+            
+            function updateSummary() {
+                if (!selectedMovie || selectedSeats.length === 0) {
+                    summaryDetails.innerHTML = '<div class="loading">Select movie and seats first...</div>';
+                    return;
+                }
+                
+                const totalPrice = selectedSeats.length * seatPrice;
+                
+                summaryDetails.innerHTML = `
+                    <div class="summary-item">
+                        <span>Movie:</span>
+                        <span>${selectedMovie.title}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Seats:</span>
+                        <span>${selectedSeats.map(s => 'A' + s).join(', ')}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Seats Count:</span>
+                        <span>${selectedSeats.length}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Price per Seat:</span>
+                        <span>$${seatPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Amount:</span>
+                        <span>$${totalPrice.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            
+            function goToStep(stepNumber) {
+                // Hide all steps
+                document.querySelectorAll('.booking-step').forEach(step => {
+                    step.classList.remove('active');
+                });
+                
+                // Show target step
+                document.getElementById(`step-${stepNumber}`).classList.add('active');
+                currentStep = stepNumber;
+                
+                // Load data for step if needed
+                if (stepNumber === 2) {
+                    loadSeats();
+                } else if (stepNumber === 3) {
+                    updateSummary();
+                }
+            }
+            
+            function validateForm() {
+                const name = document.getElementById('customer-name').value.trim();
+                const email = document.getElementById('customer-email').value.trim();
+                const phone = document.getElementById('customer-phone').value.trim();
+                
+                if (!name || !email || !phone) {
+                    showNotification('Please fill all required fields', 'error');
+                    return false;
+                }
+                
+                if (!validateEmail(email)) {
+                    showNotification('Please enter a valid email address', 'error');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+            
+            function submitBooking() {
+                if (!validateForm()) return;
+                
+                if (!selectedMovie || selectedSeats.length === 0) {
+                    showNotification('Please select seats first', 'error');
+                    goToStep(2);
+                    return;
+                }
+                
+                const bookingData = {
+                    movieId: selectedMovie.id,
+                    seatNumbers: selectedSeats,
+                    customerName: document.getElementById('customer-name').value.trim(),
+                    customerEmail: document.getElementById('customer-email').value.trim(),
+                    customerPhone: document.getElementById('customer-phone').value.trim()
+                };
+                
+                confirmBookingBtn.disabled = true;
+                confirmBookingBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                // Submit booking
+                fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingData)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Booking failed');
+                    return response.json();
+                })
+                .then(booking => {
+                    // Show confirmation
+                    showConfirmation(booking);
+                    goToStep(4);
+                })
+                .catch(error => {
+                    console.error('Booking error:', error);
+                    showNotification('Booking failed. Please try again.', 'error');
+                })
+                .finally(() => {
+                    confirmBookingBtn.disabled = false;
+                    confirmBookingBtn.innerHTML = 'Confirm Booking <i class="fas fa-check"></i>';
+                });
+            }
+            
+            function showConfirmation(booking) {
+                confirmationDetails.innerHTML = `
+                    <div class="summary-item">
+                        <span>Booking ID:</span>
+                        <strong>${booking.bookingId}</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Movie:</span>
+                        <span>${selectedMovie.title}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Seats:</span>
+                        <span>${booking.seatNumbers.map(s => 'A' + s).join(', ')}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Customer:</span>
+                        <span>${booking.customerName}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Email:</span>
+                        <span>${booking.customerEmail}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Amount:</span>
+                        <strong>$${booking.totalAmount.toFixed(2)}</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Status:</span>
+                        <span style="color: #2a9d8f; font-weight: bold;">${booking.status}</span>
+                    </div>
+                `;
+            }
+            
+            function showNotification(message, type = 'success') {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    border-radius: 5px;
+                    color: white;
+                    font-weight: bold;
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    max-width: 400px;
+                `;
+                
+                notification.style.background = type === 'success' ? '#2a9d8f' : '#e63946';
+                
+                notification.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${message}</span>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Auto-remove after 3 seconds
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+                
+                // Add animations
+                if (!document.querySelector('#notification-animations')) {
+                    const style = document.createElement('style');
+                    style.id = 'notification-animations';
+                    style.textContent = `
+                        @keyframes slideIn {
+                            from {
+                                transform: translateX(100%);
+                                opacity: 0;
+                            }
+                            to {
+                                transform: translateX(0);
+                                opacity: 1;
+                            }
+                        }
+                        
+                        @keyframes slideOut {
+                            from {
+                                transform: translateX(0);
+                                opacity: 1;
+                            }
+                            to {
+                                transform: translateX(100%);
+                                opacity: 0;
+                            }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+            
+            function setupEventListeners() {
+                // Next step buttons
+                document.querySelectorAll('.next-step').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const nextStep = parseInt(this.dataset.next);
+                        
+                        // Validate current step
+                        if (currentStep === 1 && !selectedMovie) {
+                            showNotification('Please select a movie first', 'error');
+                            return;
+                        }
+                        
+                        if (currentStep === 2 && selectedSeats.length === 0) {
+                            showNotification('Please select at least one seat', 'error');
+                            return;
+                        }
+                        
+                        goToStep(nextStep);
+                    });
+                });
+                
+                // Previous step buttons
+                document.querySelectorAll('.prev-step').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const prevStep = parseInt(this.dataset.prev);
+                        goToStep(prevStep);
+                    });
+                });
+                
+                // Confirm booking button
+                confirmBookingBtn.addEventListener('click', submitBooking);
+                
+                // Form submission prevention
+                customerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitBooking();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
