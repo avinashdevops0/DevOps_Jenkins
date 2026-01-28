@@ -1,0 +1,14 @@
+pipeline {
+    agent { labe 'web'}
+    environment {
+        x = "5"
+        y = "1"
+    }
+    stages {
+        stage ("") {
+            steps {
+                echo "$x and $y"
+            }
+        }
+    }
+}

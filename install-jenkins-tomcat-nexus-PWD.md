@@ -14,23 +14,31 @@ docker run -d \
 
   ### ***Jenkins Installation on Alpine Linux***
   ```sh 
-  # Update and install OpenJDK 17
+  # Update package index
 apk update
-apk add openjdk17-jre
-java -version
 
-# Add community repo (if needed)
+# Add community repo if needed
 echo "https://dl-cdn.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories
 apk update
 
+# Install Java 21
+apk add openjdk21
+
 # Install Jenkins dependencies
-apk add curl openjdk17-jre
+apk add curl
+
+# Install font libraries needed for Java AWT (charts in Jenkins)
+apk add fontconfig ttf-dejavu
+
+# Optional: additional common fonts
+apk add ttf-droid ttf-freefont
 
 # Download Jenkins WAR
 curl -L -o jenkins.war https://get.jenkins.io/war-stable/latest/jenkins.war
 
-# Run Jenkins on port 8080
+# Run Jenkins
 java -jar jenkins.war --httpPort=8080 &>> jenkins.log &
+
 ```
 
 ### ***Install Tomcat on Alpine Linux***
